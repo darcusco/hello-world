@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Elektronski festivali · Hrvatska · Ljeto 2026</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:        #f9f9f7;
+    --surface:     #fcfcfb;
+    --ink:         #0b0b0b;
+    --ink-2:       #52514e;
+    --muted:       #898781;
+    --grid:        #e1e0d9;
+    --baseline:    #c3c2b7;
+    --border:      rgba(11,11,11,0.10);
+    --sea:         #eef3f6;
+    --land:        #f1efe9;
+    --land-line:   #c9c7bf;
+    --halo:        #fcfcfb;
+    --loc-tisno:   #2a78d6;
+    --loc-zrce:    #008300;
+    --loc-sibenik: #e87ba4;
+    --loc-obonjan: #eda100;
+    --chip-on:     #0b0b0b;
+    --chip-on-ink: #fcfcfb;
+    --scrim:       rgba(11,11,11,0.35);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page:        #0d0d0d;
+      --surface:     #1a1a19;
+      --ink:         #ffffff;
+      --ink-2:       #c3c2b7;
+      --muted:       #898781;
+      --grid:        #2c2c2a;
+      --baseline:    #383835;
+      --border:      rgba(255,255,255,0.10);
+      --sea:         #16191c;
+      --land:        #232320;
+      --land-line:   #4a4944;
+      --halo:        #1a1a19;
+      --loc-tisno:   #3987e5;
+      --loc-zrce:    #008300;
+      --loc-sibenik: #d55181;
+      --loc-obonjan: #c98500;
+      --chip-on:     #ffffff;
+      --chip-on-ink: #0d0d0d;
+      --scrim:       rgba(0,0,0,0.55);
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page);
+    color: var(--ink);
+    padding: 16px 12px calc(28px + env(safe-area-inset-bottom));
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  header { padding: 4px 4px 14px; }
+  h1 { font-size: 1.45rem; line-height: 1.15; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-2); font-size: 0.9rem; margin-top: 4px; }
+
+  .chips {
+    display: flex; gap: 8px; padding: 2px 2px 14px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  .chip {
+    flex: 0 0 auto;
+    font: inherit; font-size: 0.88rem; font-weight: 600;
+    padding: 9px 16px; border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface); color: var(--ink-2);
+    cursor: pointer; min-height: 40px;
+  }
+  .chip.on { background: var(--chip-on); color: var(--chip-on-ink); border-color: transparent; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .card h2 { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 10px; }
+
+  #map { display: block; width: 100%; height: auto; touch-action: manipulation; }
+  #map .sea { fill: var(--sea); }
+  #map .land { fill: var(--land); stroke: var(--land-line); stroke-width: 1; stroke-linejoin: round; }
+  #map .island { stroke: var(--land-line); fill: var(--land); }
+  #map .isl-line { stroke: var(--land-line); fill: none; stroke-linecap: round; }
+  #map .marker { cursor: pointer; }
+  #map .marker circle.dot { stroke: var(--halo); stroke-width: 2; }
+  #map .marker text.count { fill: #fff; font-size: 12px; font-weight: 700; text-anchor: middle; pointer-events: none; }
+  #map .marker text.mlabel {
+    font-size: 11.5px; font-weight: 600; fill: var(--ink);
+    paint-order: stroke; stroke: var(--halo); stroke-width: 3px; stroke-linejoin: round;
+  }
+  #map .marker.dim { opacity: 0.28; }
+  #map .marker.sel circle.dot { stroke: var(--ink); }
+  #map .leader { stroke: var(--baseline); stroke-width: 1; fill: none; }
+  #map .city { fill: var(--muted); font-size: 10px; }
+  #map .city-dot { fill: var(--muted); }
+  .map-hint { color: var(--muted); font-size: 0.78rem; margin-top: 8px; text-align: center; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--ink-2); }
+  .legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  /* timeline */
+  #tl { position: relative; }
+  .tl-axis { position: relative; height: 22px; margin-bottom: 2px; }
+  .tl-axis span {
+    position: absolute; top: 0; transform: translateX(-50%);
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; color: var(--muted);
+  }
+  .tl-grid { position: absolute; top: 22px; bottom: 0; width: 1px; background: var(--grid); }
+  .tl-today { position: absolute; top: 14px; bottom: 0; width: 0; border-left: 2px dashed var(--baseline); z-index: 1; }
+  .tl-today em {
+    position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+    font-style: normal; font-size: 0.68rem; font-weight: 700; color: var(--ink-2);
+    background: var(--surface); padding: 0 4px; white-space: nowrap;
+  }
+  .row {
+    position: relative; z-index: 2;
+    padding: 9px 0 11px; cursor: pointer;
+    border-top: 1px solid var(--grid);
+  }
+  .row:first-of-type { border-top: 0; }
+  .row.hidden { display: none; }
+  .row.dim { opacity: 0.3; }
+  .row-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+  .row-head i { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; align-self: center; }
+  .row-head b { font-size: 0.92rem; font-weight: 650; }
+  .row-head time { margin-left: auto; font-size: 0.8rem; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .track { position: relative; height: 10px; }
+  .bar {
+    position: absolute; top: 1px; height: 8px; border-radius: 4px;
+    min-width: 8px; box-shadow: 0 0 0 2px var(--surface);
+  }
+
+  footer { color: var(--muted); font-size: 0.75rem; text-align: center; padding: 6px 16px 0; line-height: 1.5; }
+
+  /* bottom sheet */
+  #scrim {
+    position: fixed; inset: 0; background: var(--scrim);
+    opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 9;
+  }
+  #sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+    max-width: 640px; margin: 0 auto;
+    background: var(--surface); border: 1px solid var(--border); border-bottom: 0;
+    border-radius: 20px 20px 0 0;
+    padding: 10px 20px calc(24px + env(safe-area-inset-bottom));
+    transform: translateY(105%); transition: transform 0.25s ease;
+  }
+  body.sheet-open #scrim { opacity: 1; pointer-events: auto; }
+  body.sheet-open #sheet { transform: translateY(0); }
+  #sheet .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--baseline); margin: 0 auto 14px; }
+  #sheet h3 { font-size: 1.25rem; letter-spacing: -0.01em; }
+  #sheet .s-loc { display: flex; align-items: center; gap: 7px; margin-top: 6px; color: var(--ink-2); font-size: 0.9rem; }
+  #sheet .s-loc i { width: 10px; height: 10px; border-radius: 50%; }
+  #sheet .s-dates { margin-top: 12px; font-size: 1rem; font-weight: 650; }
+  #sheet .s-genre { margin-top: 4px; color: var(--ink-2); font-size: 0.88rem; }
+  #sheet .s-count {
+    margin-top: 14px; display: inline-block;
+    font-size: 0.85rem; font-weight: 700;
+    background: var(--page); border: 1px solid var(--border);
+    padding: 7px 12px; border-radius: 999px;
+  }
+  #sheet .s-note { margin-top: 12px; color: var(--muted); font-size: 0.78rem; line-height: 1.45; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Elektronski festivali 🎧</h1>
+  <p class="sub">Hrvatska · ljeto 2026 · što je još pred nama</p>
+</header>
+
+<nav class="chips" id="chips" aria-label="Filter po mjesecu">
+  <button class="chip on" data-m="all">Svi</button>
+  <button class="chip" data-m="7">Srpanj</button>
+  <button class="chip" data-m="8">Kolovoz</button>
+  <button class="chip" data-m="9">Rujan</button>
+</nav>
+
+<section class="card">
+  <h2>Mapa lokacija</h2>
+  <svg id="map" role="img" aria-label="Mapa Hrvatske s lokacijama festivala"></svg>
+  <div class="legend" id="legend"></div>
+  <p class="map-hint">Klikni lokaciju na mapi da istakneš njene festivale ↓</p>
+</section>
+
+<section class="card">
+  <h2>Kalendar · 19.7. – 10.9.</h2>
+  <div id="tl"></div>
+</section>
+
+<footer>
+  Podaci prikupljeni u srpnju 2026. — prije kupnje ulaznica provjeri točne
+  datume na službenim stranicama festivala. Pošalji dalje frendovima 🍻
+</footer>
+
+<div id="scrim"></div>
+<div id="sheet" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <h3 id="s-name"></h3>
+  <div class="s-loc"><i id="s-dot"></i><span id="s-loc"></span></div>
+  <div class="s-dates" id="s-dates"></div>
+  <div class="s-genre" id="s-genre"></div>
+  <div class="s-count" id="s-count"></div>
+  <p class="s-note" id="s-note"></p>
+</div>
+
+<script>
+'use strict';
+
+/* ---------- podaci ---------- */
+
+const LOCATIONS = {
+  tisno:   { name: 'Tisno',            sub: 'The Garden Resort',   lon: 15.643, lat: 43.800, color: 'var(--loc-tisno)' },
+  zrce:    { name: 'Zrće · Pag',       sub: 'plaža Zrće, Novalja', lon: 14.905, lat: 44.558, color: 'var(--loc-zrce)' },
+  sibenik: { name: 'Šibenik',          sub: 'Martinska',           lon: 15.890, lat: 43.712, color: 'var(--loc-sibenik)' },
+  obonjan: { name: 'Obonjan',          sub: 'otok Obonjan',        lon: 15.780, lat: 43.680, color: 'var(--loc-obonjan)' },
+};
+
+/* datumi su [god, mjesec, dan] */
+const FESTIVALS = [
+  { name: 'Outlook Origins',     loc: 'tisno',   start: [2026,7,23], end: [2026,7,27], genre: 'bass · dub · drum’n’bass',
+    note: 'Legendarni bass festival, nekad u Puli — sada u Tisnom. Boat partyji po danu, obala po noći.' },
+  { name: 'Defected Croatia',    loc: 'tisno',   start: [2026,7,29], end: [2026,8,2],  genre: 'house · disco',
+    note: 'House institucija iz UK-a. Najavljeno kao jedno od posljednjih izdanja u Tisnom — ne propuštaj.' },
+  { name: 'Membrain Pulse',      loc: 'sibenik', start: [2026,7,30], end: [2026,7,30], genre: 'bass · dubstep · dnb',
+    note: 'Jednodnevno izdanje Membraina na Martinskoj preko puta Šibenika. Sound system kultura.' },
+  { name: 'Barrakud',            loc: 'zrce',    start: [2026,8,9],  end: [2026,8,13], genre: 'house · tech house · techno',
+    note: 'Pet dana na Zrću — beach partyji, klubovi Aquarius/Papaya/Noa i after do zore.' },
+  { name: 'Sonus',               loc: 'zrce',    start: [2026,8,16], end: [2026,8,20], genre: 'techno · minimal',
+    note: 'Najjači techno line-up na Jadranu. Prethodnih godina: Amelie Lens, Adam Beyer, Richie Hawtin…' },
+  { name: 'Dekmantel Selectors', loc: 'tisno',   start: [2026,8,20], end: [2026,8,24], genre: 'house · techno · eklektika',
+    note: 'Nizozemski kultni brend — dugi setovi najboljih svjetskih selectora u Barbarelli i na plaži.' },
+  { name: 'Summer Peak',         loc: 'zrce',    start: [2026,8,22], end: [2026,8,27], genre: 'house · EDM · techno',
+    note: 'Zatvaranje sezone na Zrću — šest dana, više klubova, veliki line-up.' },
+  { name: 'Dimensions',          loc: 'tisno',   start: [2026,8,27], end: [2026,8,31], genre: 'underground house · techno · electro',
+    note: 'Pet dana underground elektronike u The Gardenu. Savršen završetak kolovoza.' },
+  { name: 'Obonjan Festival',    loc: 'obonjan', start: [2026,9,3],  end: [2026,9,7],  genre: 'house · disco · balearic',
+    note: 'Boutique festival na vlastitom otoku kod Šibenika — glazba, wellness i more, sve na jednom mjestu.' },
+];
+
+const D = a => new Date(a[0], a[1] - 1, a[2]);
+const T0 = new Date(2026, 6, 19);  /* početak prikaza */
+const T1 = new Date(2026, 8, 10);  /* kraj prikaza    */
+const MJ = ['siječnja','veljače','ožujka','travnja','svibnja','lipnja','srpnja','kolovoza','rujna','listopada','studenog','prosinca'];
+
+/* ---------- mapa (SVG, stilizirani obris HR) ---------- */
+
+const OUTLINE = [
+  [13.50,45.49],[13.58,45.18],[13.72,44.95],[13.90,44.77],[14.10,44.95],[14.22,45.15],
+  [14.45,45.32],[14.65,45.18],[14.90,44.98],[15.05,44.70],[15.30,44.25],[15.45,44.05],
+  [15.90,43.72],[16.15,43.62],[16.45,43.50],[16.75,43.43],[17.05,43.28],[17.45,43.03],
+  [17.65,42.92],[17.85,42.80],[18.10,42.64],[18.53,42.41],[18.44,42.56],[18.05,42.78],
+  [17.80,42.95],[17.55,43.12],[17.28,43.40],[16.90,43.65],[16.55,43.95],[16.20,44.20],
+  [16.10,44.42],[15.95,44.62],[15.78,44.72],[15.85,44.95],[16.05,45.10],[16.35,45.15],
+  [16.55,45.20],[16.95,45.24],[17.45,45.13],[17.85,45.08],[18.25,45.10],[18.55,45.05],
+  [18.80,44.95],[19.00,44.88],[19.10,45.10],[19.05,45.30],[19.40,45.23],[19.35,45.45],
+  [19.10,45.52],[18.95,45.55],[18.70,45.90],[18.40,45.75],[17.90,45.80],[17.40,45.95],
+  [17.10,46.15],[16.85,46.35],[16.60,46.50],[16.30,46.53],[16.25,46.38],[15.90,46.28],
+  [15.62,46.20],[15.70,45.85],[15.35,45.75],[15.30,45.55],[15.10,45.45],[14.80,45.52],
+  [14.55,45.62],[14.20,45.52],[13.90,45.60],[13.60,45.55],
+];
+/* otoci kao linije [lon1,lat1,lon2,lat2,debljina] */
+const ISLANDS = [
+  [14.72,44.62, 15.20,44.32, 5],   /* Pag     */
+  [14.35,45.15, 14.48,44.60, 4],   /* Cres–Lošinj */
+  [14.52,45.10, 14.72,44.98, 6],   /* Krk     */
+  [14.95,44.10, 15.45,43.82, 4],   /* Dugi otok / Kornati */
+  [16.45,43.32, 16.85,43.30, 5],   /* Brač    */
+  [16.42,43.16, 17.08,43.12, 4],   /* Hvar    */
+  [16.70,42.93, 17.18,42.96, 4],   /* Korčula */
+];
+const CITIES = [
+  { n: 'Zagreb', lon: 15.98, lat: 45.81 },
+  { n: 'Split',  lon: 16.44, lat: 43.51 },
+];
+
+const COS = Math.cos(44.5 * Math.PI / 180);
+const S = 130;
+const px = lon => (lon - 13.2) * COS * S;
+const py = lat => (46.75 - lat) * S;
+
+function el(tag, attrs, parent) {
+  const n = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(n);
+  return n;
+}
+
+function buildMap() {
+  const svg = document.getElementById('map');
+  const W = px(19.75), H = py(42.1);
+  svg.setAttribute('viewBox', `0 0 ${W.toFixed(0)} ${H.toFixed(0)}`);
+
+  el('rect', { class: 'sea', x: 0, y: 0, width: W, height: H, rx: 10 }, svg);
+  const d = OUTLINE.map((p, i) => (i ? 'L' : 'M') + px(p[0]).toFixed(1) + ' ' + py(p[1]).toFixed(1)).join('') + 'Z';
+  el('path', { class: 'land', d }, svg);
+
+  for (const [a, b, c, dd, w] of ISLANDS)
+    el('line', { class: 'isl-line', x1: px(a), y1: py(b), x2: px(c), y2: py(dd), 'stroke-width': w }, svg);
+
+  for (const c of CITIES) {
+    el('circle', { class: 'city-dot', cx: px(c.lon), cy: py(c.lat), r: 2.5 }, svg);
+    el('text', { class: 'city', x: px(c.lon) + 5, y: py(c.lat) + 13 }, svg).textContent = c.n;
+  }
+
+  /* markeri — točke u šibenskom klasteru razmaknute, leader vodi na stvarnu lokaciju */
+  const MARKS = {
+    zrce:    { dot: [0, 0],     label: [-16, -14, 'end'] },
+    tisno:   { dot: [-8, -14],  label: [-15, -11, 'end'] },
+    sibenik: { dot: [22, 2],    label: [15, 4, 'start'] },
+    obonjan: { dot: [-18, 18],  label: [-14, 13, 'end'] },
+  };
+  for (const key in LOCATIONS) {
+    const L = LOCATIONS[key];
+    const n = FESTIVALS.filter(f => f.loc === key).length;
+    const tx = px(L.lon), ty = py(L.lat);
+    const m = MARKS[key];
+    const x = tx + m.dot[0], y = ty + m.dot[1];
+    const g = el('g', { class: 'marker', 'data-loc': key, role: 'button', tabindex: 0,
+                        'aria-label': L.name + ', broj festivala: ' + n }, document.getElementById('map'));
+    if (m.dot[0] || m.dot[1]) el('line', { class: 'leader', x1: tx, y1: ty, x2: x, y2: y }, g);
+    el('circle', { class: 'dot', cx: x, cy: y, r: 11, fill: L.color }, g);
+    el('text', { class: 'count', x, y: y + 4.2 }, g).textContent = n;
+    el('text', { class: 'mlabel', x: x + m.label[0], y: y + m.label[1], 'text-anchor': m.label[2] }, g).textContent = L.name;
+    /* veća tap zona */
+    el('circle', { class: 'tap', cx: x, cy: y, r: 24, fill: 'transparent' }, g);
+    g.addEventListener('click', () => toggleLoc(key));
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleLoc(key); } });
+  }
+
+  const leg = document.getElementById('legend');
+  for (const key in LOCATIONS) {
+    const L = LOCATIONS[key];
+    const s = document.createElement('span');
+    s.innerHTML = `<i style="background:${L.color}"></i>${L.name} — ${L.sub}`;
+    leg.appendChild(s);
+  }
+}
+
+/* ---------- kalendar (Gantt) ---------- */
+
+const pct = date => Math.max(0, Math.min(100, (date - T0) / (T1 - T0) * 100));
+
+function buildTimeline() {
+  const tl = document.getElementById('tl');
+
+  const axis = document.createElement('div');
+  axis.className = 'tl-axis';
+  const months = [
+    { label: 'SRPANJ',  a: T0,                    b: new Date(2026, 7, 1) },
+    { label: 'KOLOVOZ', a: new Date(2026, 7, 1),  b: new Date(2026, 8, 1) },
+    { label: 'RUJAN',   a: new Date(2026, 8, 1),  b: T1 },
+  ];
+  for (const m of months) {
+    const s = document.createElement('span');
+    s.textContent = m.label;
+    s.style.left = ((pct(m.a) + pct(m.b)) / 2) + '%';
+    axis.appendChild(s);
+  }
+  tl.appendChild(axis);
+
+  for (const m of [new Date(2026, 7, 1), new Date(2026, 8, 1)]) {
+    const g = document.createElement('div');
+    g.className = 'tl-grid';
+    g.style.left = pct(m) + '%';
+    tl.appendChild(g);
+  }
+
+  const today = new Date();
+  if (today >= T0 && today <= T1) {
+    const t = document.createElement('div');
+    t.className = 'tl-today';
+    t.style.left = pct(today) + '%';
+    t.innerHTML = '<em>danas</em>';
+    tl.appendChild(t);
+    if (pct(today) < 5) {
+      const em = t.querySelector('em');
+      em.style.left = '2px';
+      em.style.transform = 'none';
+    }
+    /* sakrij oznaku mjeseca ako se sudara s "danas" */
+    requestAnimationFrame(() => {
+      const r = t.querySelector('em').getBoundingClientRect();
+      axis.querySelectorAll('span').forEach(s => {
+        const q = s.getBoundingClientRect();
+        if (r.right >= q.left - 6 && r.left <= q.right + 6) s.style.visibility = 'hidden';
+      });
+    });
+  }
+
+  FESTIVALS.forEach((f, i) => {
+    const L = LOCATIONS[f.loc];
+    const s = D(f.start), e = D(f.end);
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.dataset.i = i;
+    row.dataset.loc = f.loc;
+    const dTxt = f.start[2] + '.' + f.start[1] + '.' + (f.start[1] === f.end[1] && f.start[2] === f.end[2] ? '' : '–' + f.end[2] + '.' + f.end[1] + '.');
+    row.innerHTML =
+      `<div class="row-head"><i style="background:${L.color}"></i><b>${f.name}</b><time>${dTxt}</time></div>` +
+      `<div class="track"><div class="bar" style="background:${L.color};left:${pct(s)}%;width:${Math.max(1.6, pct(new Date(e.getTime() + 864e5)) - pct(s))}%"></div></div>`;
+    row.addEventListener('click', () => openSheet(i));
+    tl.appendChild(row);
+  });
+}
+
+/* ---------- stanje i interakcija ---------- */
+
+const state = { month: 'all', loc: null };
+
+function apply() {
+  document.querySelectorAll('#tl .row').forEach(row => {
+    const f = FESTIVALS[+row.dataset.i];
+    const inMonth = state.month === 'all' || f.start[1] === +state.month || f.end[1] === +state.month;
+    row.classList.toggle('hidden', !inMonth);
+    row.classList.toggle('dim', !!state.loc && row.dataset.loc !== state.loc);
+  });
+  document.querySelectorAll('#map .marker').forEach(m => {
+    const key = m.dataset.loc;
+    const any = FESTIVALS.some(f => f.loc === key &&
+      (state.month === 'all' || f.start[1] === +state.month || f.end[1] === +state.month));
+    m.classList.toggle('sel', state.loc === key);
+    m.classList.toggle('dim', (state.loc && state.loc !== key) || !any);
+  });
+}
+
+function toggleLoc(key) {
+  state.loc = state.loc === key ? null : key;
+  apply();
+}
+
+document.getElementById('chips').addEventListener('click', e => {
+  const b = e.target.closest('.chip');
+  if (!b) return;
+  state.month = b.dataset.m;
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b));
+  apply();
+});
+
+/* ---------- bottom sheet ---------- */
+
+function fmt(a) { return a[2] + '. ' + MJ[a[1] - 1]; }
+
+function openSheet(i) {
+  const f = FESTIVALS[i], L = LOCATIONS[f.loc];
+  document.getElementById('s-name').textContent = f.name;
+  document.getElementById('s-dot').style.background = L.color;
+  document.getElementById('s-loc').textContent = L.name + ' · ' + L.sub;
+  document.getElementById('s-dates').textContent =
+    f.start[2] === f.end[2] && f.start[1] === f.end[1] ? fmt(f.start) + ' (jednodnevni)' : fmt(f.start) + ' – ' + fmt(f.end);
+  document.getElementById('s-genre').textContent = f.genre;
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const s = D(f.start), e = D(f.end);
+  const days = Math.round((s - now) / 864e5);
+  const c = document.getElementById('s-count');
+  if (now >= s && now <= e) c.textContent = '🔥 Upravo traje!';
+  else if (days === 0) c.textContent = '🎉 Počinje danas!';
+  else if (days === 1) c.textContent = '⏳ Počinje sutra!';
+  else if (days > 1) c.textContent = '⏳ Počinje za ' + days + ' dana';
+  else c.textContent = '✔️ Završio';
+  document.getElementById('s-note').textContent = f.note + ' · Provjeri službenu stranicu za line-up i ulaznice.';
+  document.body.classList.add('sheet-open');
+}
+document.getElementById('scrim').addEventListener('click', () => document.body.classList.remove('sheet-open'));
+document.getElementById('sheet').addEventListener('click', () => document.body.classList.remove('sheet-open'));
+
+buildMap();
+buildTimeline();
+apply();
+</script>
+</body>
+</html>
