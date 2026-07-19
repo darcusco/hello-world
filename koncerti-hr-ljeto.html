@@ -22,7 +22,7 @@
     --loc-tisno:   #2a78d6;
     --loc-zrce:    #008300;
     --loc-sibenik: #e87ba4;
-    --loc-obonjan: #eda100;
+    --loc-other:   #eda100;
     --chip-on:     #0b0b0b;
     --chip-on-ink: #fcfcfb;
     --scrim:       rgba(11,11,11,0.35);
@@ -45,7 +45,7 @@
       --loc-tisno:   #3987e5;
       --loc-zrce:    #008300;
       --loc-sibenik: #d55181;
-      --loc-obonjan: #c98500;
+      --loc-other:   #c98500;
       --chip-on:     #ffffff;
       --chip-on-ink: #0d0d0d;
       --scrim:       rgba(0,0,0,0.55);
@@ -133,9 +133,14 @@
   .row:first-of-type { border-top: 0; }
   .row.hidden { display: none; }
   .row.dim { opacity: 0.3; }
-  .row-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+  .row-head { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
   .row-head i { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; align-self: center; }
-  .row-head b { font-size: 0.92rem; font-weight: 650; }
+  .row-head b { font-size: 0.92rem; font-weight: 650; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tag {
+    flex: 0 0 auto; align-self: center;
+    font-size: 0.55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+    color: var(--ink-2); border: 1px solid var(--border); border-radius: 4px; padding: 2px 4px;
+  }
   .row-head time { margin-left: auto; font-size: 0.8rem; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
   .track { position: relative; height: 10px; }
   .bar {
@@ -179,7 +184,7 @@
 
 <header>
   <h1>Elektronski festivali 🎧</h1>
-  <p class="sub">Hrvatska · ljeto 2026 · što je još pred nama</p>
+  <p class="sub">Hrvatska · ljeto 2026 · festivali i veliki koncerti</p>
 </header>
 
 <nav class="chips" id="chips" aria-label="Filter po mjesecu">
@@ -222,21 +227,44 @@
 
 /* ---------- podaci ---------- */
 
-const LOCATIONS = {
-  tisno:   { name: 'Tisno',            sub: 'The Garden Resort',   lon: 15.643, lat: 43.800, color: 'var(--loc-tisno)' },
-  zrce:    { name: 'Zrće · Pag',       sub: 'plaža Zrće, Novalja', lon: 14.905, lat: 44.558, color: 'var(--loc-zrce)' },
-  sibenik: { name: 'Šibenik',          sub: 'Martinska',           lon: 15.890, lat: 43.712, color: 'var(--loc-sibenik)' },
-  obonjan: { name: 'Obonjan',          sub: 'otok Obonjan',        lon: 15.780, lat: 43.680, color: 'var(--loc-obonjan)' },
+/* 4 grupe boja (validirana paleta) — marker i dalje ima svoju poziciju i ime */
+const GROUPS = {
+  tisno:   { name: 'Tisno',           sub: 'The Garden Resort',                   color: 'var(--loc-tisno)' },
+  zrce:    { name: 'Zrće · Pag',      sub: 'plaža Zrće, Novalja',                 color: 'var(--loc-zrce)' },
+  sibenik: { name: 'Šibenik i otoci', sub: 'Martinska · sv. Mihovila · Obonjan',  color: 'var(--loc-sibenik)' },
+  other:   { name: 'Pula · Primišlje', sub: 'Arena Pula · Kamp Robinzon',         color: 'var(--loc-other)' },
 };
+
+const LOCATIONS = {
+  tisno:     { name: 'Tisno',     sub: 'The Garden Resort',        group: 'tisno',   lon: 15.643, lat: 43.800 },
+  zrce:      { name: 'Zrće · Pag', sub: 'plaža Zrće, Novalja',     group: 'zrce',    lon: 14.905, lat: 44.558 },
+  sibenik:   { name: 'Šibenik',   sub: 'Martinska',                group: 'sibenik', lon: 15.890, lat: 43.712 },
+  obonjan:   { name: 'Obonjan',   sub: 'otok Obonjan',             group: 'sibenik', lon: 15.780, lat: 43.680 },
+  pula:      { name: 'Pula',      sub: 'Arena Pula',               group: 'other',   lon: 13.850, lat: 44.870 },
+  primislje: { name: 'Primišlje', sub: 'Kamp Robinzon, Mrežnica',  group: 'other',   lon: 15.600, lat: 45.150 },
+};
+const locColor = key => GROUPS[LOCATIONS[key].group].color;
 
 /* datumi su [god, mjesec, dan] */
 const FESTIVALS = [
+  { name: 'Thievery Corporation', loc: 'sibenik', start: [2026,7,22], end: [2026,7,23], genre: 'downtempo · dub · lounge',
+    type: 'koncert', venue: 'Tvrđava sv. Mihovila',
+    note: '30 godina karijere na šibenskoj tvrđavi. Termin 22.7. je rasprodan — dodan je i 23.7.!' },
   { name: 'Outlook Origins',     loc: 'tisno',   start: [2026,7,23], end: [2026,7,27], genre: 'bass · dub · drum’n’bass',
     note: 'Legendarni bass festival, nekad u Puli — sada u Tisnom. Boat partyji po danu, obala po noći.' },
+  { name: 'Moby',                loc: 'pula',    start: [2026,7,23], end: [2026,7,23], genre: 'electronica · rave · ambient',
+    type: 'koncert', venue: 'Arena Pula',
+    note: 'Prvi Mobyjev solo koncert u Hrvatskoj — novi live spektakl uz Porcelain, Natural Blues i Why Does My Heart…' },
+  { name: 'Kraftwerk',           loc: 'pula',    start: [2026,7,28], end: [2026,7,28], genre: 'electro · synth pioniri',
+    type: 'koncert', venue: 'Arena Pula',
+    note: 'Multimedia Tour 2026 u rimskom amfiteatru — dvosatna 3-D retrospektiva pionira elektronske glazbe.' },
   { name: 'Defected Croatia',    loc: 'tisno',   start: [2026,7,29], end: [2026,8,2],  genre: 'house · disco',
     note: 'House institucija iz UK-a. Najavljeno kao jedno od posljednjih izdanja u Tisnom — ne propuštaj.' },
   { name: 'Membrain Pulse',      loc: 'sibenik', start: [2026,7,30], end: [2026,7,30], genre: 'bass · dubstep · dnb',
+    venue: 'Martinska',
     note: 'Jednodnevno izdanje Membraina na Martinskoj preko puta Šibenika. Sound system kultura.' },
+  { name: 'MoDem',               loc: 'primislje', start: [2026,8,3], end: [2026,8,9], genre: 'psytrance · forest · darkpsy',
+    note: 'Momento Demento — 7 dana u šumi uz rijeku Mrežnicu. Jedan od najjačih psytrance festivala na svijetu.' },
   { name: 'Barrakud',            loc: 'zrce',    start: [2026,8,9],  end: [2026,8,13], genre: 'house · tech house · techno',
     note: 'Pet dana na Zrću — beach partyji, klubovi Aquarius/Papaya/Noa i after do zore.' },
   { name: 'Sonus',               loc: 'zrce',    start: [2026,8,16], end: [2026,8,20], genre: 'techno · minimal',
@@ -318,10 +346,12 @@ function buildMap() {
 
   /* markeri — točke u šibenskom klasteru razmaknute, leader vodi na stvarnu lokaciju */
   const MARKS = {
-    zrce:    { dot: [0, 0],     label: [-16, -14, 'end'] },
-    tisno:   { dot: [-8, -14],  label: [-15, -11, 'end'] },
-    sibenik: { dot: [22, 2],    label: [15, 4, 'start'] },
-    obonjan: { dot: [-18, 18],  label: [-14, 13, 'end'] },
+    zrce:      { dot: [0, 0],     label: [-16, -14, 'end'] },
+    tisno:     { dot: [-8, -14],  label: [-15, -11, 'end'] },
+    sibenik:   { dot: [22, 2],    label: [15, 4, 'start'] },
+    obonjan:   { dot: [-18, 18],  label: [-14, 13, 'end'] },
+    pula:      { dot: [0, 0],     label: [-14, 5, 'end'] },
+    primislje: { dot: [0, 0],     label: [16, 5, 'start'] },
   };
   for (const key in LOCATIONS) {
     const L = LOCATIONS[key];
@@ -330,9 +360,9 @@ function buildMap() {
     const m = MARKS[key];
     const x = tx + m.dot[0], y = ty + m.dot[1];
     const g = el('g', { class: 'marker', 'data-loc': key, role: 'button', tabindex: 0,
-                        'aria-label': L.name + ', broj festivala: ' + n }, document.getElementById('map'));
+                        'aria-label': L.name + ', broj događanja: ' + n }, document.getElementById('map'));
     if (m.dot[0] || m.dot[1]) el('line', { class: 'leader', x1: tx, y1: ty, x2: x, y2: y }, g);
-    el('circle', { class: 'dot', cx: x, cy: y, r: 11, fill: L.color }, g);
+    el('circle', { class: 'dot', cx: x, cy: y, r: 11, fill: locColor(key) }, g);
     el('text', { class: 'count', x, y: y + 4.2 }, g).textContent = n;
     el('text', { class: 'mlabel', x: x + m.label[0], y: y + m.label[1], 'text-anchor': m.label[2] }, g).textContent = L.name;
     /* veća tap zona */
@@ -342,10 +372,10 @@ function buildMap() {
   }
 
   const leg = document.getElementById('legend');
-  for (const key in LOCATIONS) {
-    const L = LOCATIONS[key];
+  for (const key in GROUPS) {
+    const G = GROUPS[key];
     const s = document.createElement('span');
-    s.innerHTML = `<i style="background:${L.color}"></i>${L.name} — ${L.sub}`;
+    s.innerHTML = `<i style="background:${G.color}"></i>${G.name} — ${G.sub}`;
     leg.appendChild(s);
   }
 }
@@ -402,16 +432,20 @@ function buildTimeline() {
   }
 
   FESTIVALS.forEach((f, i) => {
-    const L = LOCATIONS[f.loc];
+    const c = locColor(f.loc);
     const s = D(f.start), e = D(f.end);
     const row = document.createElement('div');
     row.className = 'row';
     row.dataset.i = i;
     row.dataset.loc = f.loc;
-    const dTxt = f.start[2] + '.' + f.start[1] + '.' + (f.start[1] === f.end[1] && f.start[2] === f.end[2] ? '' : '–' + f.end[2] + '.' + f.end[1] + '.');
+    const dTxt =
+      f.start[1] === f.end[1] && f.start[2] === f.end[2] ? f.start[2] + '.' + f.start[1] + '.' :
+      f.start[1] === f.end[1] ? f.start[2] + '.–' + f.end[2] + '.' + f.end[1] + '.' :
+      f.start[2] + '.' + f.start[1] + '.–' + f.end[2] + '.' + f.end[1] + '.';
+    const tag = f.type === 'koncert' ? '<em class="tag">koncert</em>' : '';
     row.innerHTML =
-      `<div class="row-head"><i style="background:${L.color}"></i><b>${f.name}</b><time>${dTxt}</time></div>` +
-      `<div class="track"><div class="bar" style="background:${L.color};left:${pct(s)}%;width:${Math.max(1.6, pct(new Date(e.getTime() + 864e5)) - pct(s))}%"></div></div>`;
+      `<div class="row-head"><i style="background:${c}"></i><b>${f.name}</b>${tag}<time>${dTxt}</time></div>` +
+      `<div class="track"><div class="bar" style="background:${c};left:${pct(s)}%;width:${Math.max(1.6, pct(new Date(e.getTime() + 864e5)) - pct(s))}%"></div></div>`;
     row.addEventListener('click', () => openSheet(i));
     tl.appendChild(row);
   });
@@ -457,8 +491,8 @@ function fmt(a) { return a[2] + '. ' + MJ[a[1] - 1]; }
 function openSheet(i) {
   const f = FESTIVALS[i], L = LOCATIONS[f.loc];
   document.getElementById('s-name').textContent = f.name;
-  document.getElementById('s-dot').style.background = L.color;
-  document.getElementById('s-loc').textContent = L.name + ' · ' + L.sub;
+  document.getElementById('s-dot').style.background = locColor(f.loc);
+  document.getElementById('s-loc').textContent = L.name + ' · ' + (f.venue || L.sub);
   document.getElementById('s-dates').textContent =
     f.start[2] === f.end[2] && f.start[1] === f.end[1] ? fmt(f.start) + ' (jednodnevni)' : fmt(f.start) + ' – ' + fmt(f.end);
   document.getElementById('s-genre').textContent = f.genre;
