@@ -26,6 +26,7 @@
     --chip-on:     #0b0b0b;
     --chip-on-ink: #fcfcfb;
     --scrim:       rgba(11,11,11,0.35);
+    --fav:         #e34948;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -49,6 +50,7 @@
       --chip-on:     #ffffff;
       --chip-on-ink: #0d0d0d;
       --scrim:       rgba(0,0,0,0.55);
+      --fav:         #e66767;
     }
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -64,6 +66,24 @@
   header { padding: 4px 4px 14px; }
   h1 { font-size: 1.45rem; line-height: 1.15; letter-spacing: -0.01em; }
   .sub { color: var(--ink-2); font-size: 0.9rem; margin-top: 4px; }
+
+  .tabs {
+    display: flex; gap: 4px; margin: 0 2px 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 4px;
+  }
+  .tab {
+    flex: 1; font: inherit; font-size: 0.9rem; font-weight: 650;
+    padding: 9px 6px; border: 0; border-radius: 9px;
+    background: transparent; color: var(--ink-2); cursor: pointer; min-height: 42px;
+  }
+  .tab.on { background: var(--chip-on); color: var(--chip-on-ink); }
+  .badge {
+    display: inline-block; min-width: 20px; padding: 1px 6px; margin-left: 2px;
+    border-radius: 999px; font-size: 0.75rem; font-weight: 700;
+    background: var(--fav); color: #fff;
+  }
+  .tab.on .badge { background: var(--fav); }
 
   .chips {
     display: flex; gap: 8px; padding: 2px 2px 14px;
@@ -148,6 +168,32 @@
     min-width: 8px; box-shadow: 0 0 0 2px var(--surface);
   }
 
+  .fav-mark { color: var(--fav); font-size: 0.85rem; flex: 0 0 auto; align-self: center; }
+
+  /* moja lista */
+  .list-sum { color: var(--ink-2); font-size: 0.88rem; margin: -2px 0 12px; }
+  .ml-empty { color: var(--muted); font-size: 0.9rem; text-align: center; padding: 26px 10px; line-height: 1.6; }
+  .ml-card {
+    position: relative; display: flex; flex-direction: column; gap: 3px;
+    border: 1px solid var(--border); border-left-width: 5px; border-radius: 12px;
+    padding: 12px 44px 12px 14px; margin-bottom: 10px; background: var(--page);
+  }
+  .ml-head { display: flex; align-items: center; gap: 6px; }
+  .ml-head b { font-size: 0.98rem; font-weight: 650; }
+  .ml-when { color: var(--ink-2); font-size: 0.85rem; }
+  .ml-badge { align-self: flex-start; margin-top: 6px; font-size: 0.78rem; font-weight: 700;
+    background: var(--surface); border: 1px solid var(--border); padding: 4px 10px; border-radius: 999px; }
+  .ml-x {
+    position: absolute; top: 8px; right: 8px; width: 34px; height: 34px;
+    font-size: 1rem; line-height: 1; border: 0; border-radius: 50%;
+    background: transparent; color: var(--muted); cursor: pointer;
+  }
+  .share-btn {
+    width: 100%; margin-top: 6px; font: inherit; font-size: 0.92rem; font-weight: 650;
+    padding: 13px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--chip-on); color: var(--chip-on-ink); cursor: pointer; min-height: 48px;
+  }
+
   footer { color: var(--muted); font-size: 0.75rem; text-align: center; padding: 6px 16px 0; line-height: 1.5; }
 
   /* bottom sheet */
@@ -177,6 +223,13 @@
     background: var(--page); border: 1px solid var(--border);
     padding: 7px 12px; border-radius: 999px;
   }
+  #sheet .s-add {
+    display: block; width: 100%; margin-top: 14px;
+    font: inherit; font-size: 0.95rem; font-weight: 650;
+    padding: 13px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--fav); color: #fff; cursor: pointer; min-height: 48px;
+  }
+  #sheet .s-add.in { background: var(--page); color: var(--ink); }
   #sheet .s-note { margin-top: 12px; color: var(--muted); font-size: 0.78rem; line-height: 1.45; }
 </style>
 </head>
@@ -187,6 +240,12 @@
   <p class="sub">Hrvatska · ljeto 2026 · festivali i veliki koncerti</p>
 </header>
 
+<nav class="tabs" aria-label="Prikaz">
+  <button class="tab on" data-v="cal">📅 Kalendar</button>
+  <button class="tab" data-v="list">♥ Moja lista <span class="badge" id="tab-count">0</span></button>
+</nav>
+
+<div id="view-cal">
 <nav class="chips" id="chips" aria-label="Filter po mjesecu">
   <button class="chip on" data-m="all">Svi</button>
   <button class="chip" data-m="7">Srpanj</button>
@@ -205,6 +264,16 @@
   <h2>Kalendar · 19.7. – 10.9.</h2>
   <div id="tl"></div>
 </section>
+</div>
+
+<div id="view-list" hidden>
+<section class="card">
+  <h2>♥ Moja lista</h2>
+  <p class="list-sum" id="list-sum"></p>
+  <div id="mylist"></div>
+  <button class="share-btn" id="share" hidden>📋 Kopiraj listu za WhatsApp</button>
+</section>
+</div>
 
 <footer>
   Podaci prikupljeni u srpnju 2026. — prije kupnje ulaznica provjeri točne
@@ -219,6 +288,7 @@
   <div class="s-dates" id="s-dates"></div>
   <div class="s-genre" id="s-genre"></div>
   <div class="s-count" id="s-count"></div>
+  <button class="s-add" id="s-add"></button>
   <p class="s-note" id="s-note"></p>
 </div>
 
@@ -444,7 +514,7 @@ function buildTimeline() {
       f.start[2] + '.' + f.start[1] + '.–' + f.end[2] + '.' + f.end[1] + '.';
     const tag = f.type === 'koncert' ? '<em class="tag">koncert</em>' : '';
     row.innerHTML =
-      `<div class="row-head"><i style="background:${c}"></i><b>${f.name}</b>${tag}<time>${dTxt}</time></div>` +
+      `<div class="row-head"><i style="background:${c}"></i><b>${f.name}</b>${tag}<span class="fav-mark" hidden>♥</span><time>${dTxt}</time></div>` +
       `<div class="track"><div class="bar" style="background:${c};left:${pct(s)}%;width:${Math.max(1.6, pct(new Date(e.getTime() + 864e5)) - pct(s))}%"></div></div>`;
     row.addEventListener('click', () => openSheet(i));
     tl.appendChild(row);
@@ -484,6 +554,105 @@ document.getElementById('chips').addEventListener('click', e => {
   apply();
 });
 
+/* ---------- moja lista ---------- */
+
+let myList = new Set();
+try { myList = new Set(JSON.parse(localStorage.getItem('mojaLista2026') || '[]')); } catch (e) {}
+const inList = f => myList.has(f.name);
+
+function toggleList(f) {
+  if (inList(f)) myList.delete(f.name); else myList.add(f.name);
+  try { localStorage.setItem('mojaLista2026', JSON.stringify([...myList])); } catch (e) {}
+  refreshList();
+}
+
+function countdownText(f) {
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const s = D(f.start), e = D(f.end);
+  const days = Math.round((s - now) / 864e5);
+  if (now >= s && now <= e) return '🔥 Upravo traje!';
+  if (days === 0) return '🎉 Počinje danas!';
+  if (days === 1) return '⏳ Počinje sutra!';
+  if (days > 1) return '⏳ Počinje za ' + days + ' dana';
+  return '✔️ Završio';
+}
+
+const DAN = ['ned', 'pon', 'uto', 'sri', 'čet', 'pet', 'sub'];
+const kratko = a => DAN[D(a).getDay()] + ' ' + a[2] + '.' + a[1] + '.';
+
+function refreshList() {
+  const chosen = FESTIVALS.filter(inList);
+  document.getElementById('tab-count').textContent = chosen.length;
+
+  document.querySelectorAll('#tl .row').forEach(row => {
+    row.querySelector('.fav-mark').hidden = !inList(FESTIVALS[+row.dataset.i]);
+  });
+
+  const box = document.getElementById('mylist');
+  box.innerHTML = '';
+  const sum = document.getElementById('list-sum');
+  document.getElementById('share').hidden = chosen.length === 0;
+
+  if (!chosen.length) {
+    sum.textContent = '';
+    box.innerHTML = '<p class="ml-empty">Lista je još prazna 🕺<br>Otvori Kalendar, klikni na događaj i stisni<br>„♥ Dodaj na moju listu”.</p>';
+    return;
+  }
+  const dana = chosen.reduce((n, f) => n + Math.round((D(f.end) - D(f.start)) / 864e5) + 1, 0);
+  sum.textContent = chosen.length + (chosen.length === 1 ? ' događanje' : ' događanja') + ' · ukupno ' + dana + ' dana partijanja 🍾';
+
+  for (const f of chosen) {
+    const L = LOCATIONS[f.loc];
+    const card = document.createElement('div');
+    card.className = 'ml-card';
+    card.style.setProperty('border-left-color', locColor(f.loc));
+    const when = f.start[1] === f.end[1] && f.start[2] === f.end[2] ? kratko(f.start) : kratko(f.start) + ' – ' + kratko(f.end);
+    card.innerHTML =
+      `<div class="ml-head"><b>${f.name}</b>${f.type === 'koncert' ? '<em class="tag">koncert</em>' : ''}</div>` +
+      `<div class="ml-when">${when} · ${L.name}, ${f.venue || L.sub}</div>` +
+      `<span class="ml-badge">${countdownText(f)}</span>` +
+      `<button class="ml-x" aria-label="Ukloni s liste">✕</button>`;
+    card.querySelector('.ml-x').addEventListener('click', () => toggleList(f));
+    box.appendChild(card);
+  }
+}
+
+document.getElementById('share').addEventListener('click', () => {
+  const chosen = FESTIVALS.filter(inList);
+  const text = '🎧 Moja lista — elektronsko ljeto 2026 🇭🇷\n' + chosen.map(f => {
+    const L = LOCATIONS[f.loc];
+    const when = f.start[1] === f.end[1] && f.start[2] === f.end[2] ? kratko(f.start) : kratko(f.start) + ' – ' + kratko(f.end);
+    return '♥ ' + f.name + ' · ' + when + ' · ' + L.name + ' (' + (f.venue || L.sub) + ')';
+  }).join('\n') + '\nTko je za? 🍻';
+  const done = () => {
+    const b = document.getElementById('share');
+    b.textContent = '✓ Kopirano — zalijepi u WhatsApp!';
+    setTimeout(() => { b.textContent = '📋 Kopiraj listu za WhatsApp'; }, 2200);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+  } else fallbackCopy(text, done);
+});
+
+function fallbackCopy(text, done) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); done(); } catch (e) { alert(text); }
+  ta.remove();
+}
+
+/* ---------- tabovi ---------- */
+
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
+  document.getElementById('view-cal').hidden = t.dataset.v !== 'cal';
+  document.getElementById('view-list').hidden = t.dataset.v !== 'list';
+  document.body.classList.remove('sheet-open');
+}));
+
 /* ---------- bottom sheet ---------- */
 
 function fmt(a) { return a[2] + '. ' + MJ[a[1] - 1]; }
@@ -496,15 +665,14 @@ function openSheet(i) {
   document.getElementById('s-dates').textContent =
     f.start[2] === f.end[2] && f.start[1] === f.end[1] ? fmt(f.start) + ' (jednodnevni)' : fmt(f.start) + ' – ' + fmt(f.end);
   document.getElementById('s-genre').textContent = f.genre;
-  const now = new Date(); now.setHours(0, 0, 0, 0);
-  const s = D(f.start), e = D(f.end);
-  const days = Math.round((s - now) / 864e5);
-  const c = document.getElementById('s-count');
-  if (now >= s && now <= e) c.textContent = '🔥 Upravo traje!';
-  else if (days === 0) c.textContent = '🎉 Počinje danas!';
-  else if (days === 1) c.textContent = '⏳ Počinje sutra!';
-  else if (days > 1) c.textContent = '⏳ Počinje za ' + days + ' dana';
-  else c.textContent = '✔️ Završio';
+  document.getElementById('s-count').textContent = countdownText(f);
+  const add = document.getElementById('s-add');
+  const paint = () => {
+    add.textContent = inList(f) ? '✓ Na mojoj listi — ukloni' : '♥ Dodaj na moju listu';
+    add.classList.toggle('in', inList(f));
+  };
+  paint();
+  add.onclick = e => { e.stopPropagation(); toggleList(f); paint(); };
   document.getElementById('s-note').textContent = f.note + ' · Provjeri službenu stranicu za line-up i ulaznice.';
   document.body.classList.add('sheet-open');
 }
@@ -514,6 +682,7 @@ document.getElementById('sheet').addEventListener('click', () => document.body.c
 buildMap();
 buildTimeline();
 apply();
+refreshList();
 </script>
 </body>
 </html>
